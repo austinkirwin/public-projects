@@ -1,0 +1,24 @@
+---
+  output:
+    pdf_document: default
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# Iris Classification Project
+
+## Goal of the Project
+
+In this project, I am hoping to do some basic analysis on the Iris data set provided by R.
+
+## Getting Started
+
+```{r}
+library(tidyverse)
+iris_data = iris %>%
+  group_by(Species)
+iris_data
+```
