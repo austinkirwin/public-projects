@@ -1,0 +1,136 @@
+---
+title: "Stats Showcase Project"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+fontsize: 12pt
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Austin Kirwin
+### Stats Showcase Project
+
+This R Markdown file will demonstrate my abilities in modeling regression in R, including creating and cleaning the model and its data. Because the main focus is my own abilities and not necessarily interpreting or using findings, I will just use the faraway Cheddar data set.
+
+### Importing data set
+
+```{r}
+options(repos = c(CRAN = "https://cran.r-project.org"))
+install.packages("faraway")
+library(faraway)
+cheddar = cheddar
+```
+
+
+### Making the model
+
+```{r}
+attach(cheddar)
+model = lm(taste~Acetic+H2S+Lactic, data = cheddar)
+summary(model)
+```
+Acetic does not seem to be statistically significant, so I'll compare a reduced model with it removed.
+
+```{r}
+red_model = lm(taste~H2S+Lactic, data = cheddar)
+anova(red_model, model)
+```
+There is no significant evidence that the full model performs better than the reduced model, so I would recommend leaving 'Acetic' out of the model.
+
+### Making predictions
+
+Time to make prediction intervals based on arbitrary values for H2S and Lactic.
+
+```{r}
+new_cheddar = data.frame(
+  H2S = c(5, 4.2),
+  Lactic = c(25, 14)
+)
+
+# Bonferroni Correction
+correction = .05 / 2
+
+prediction_interval = predict(
+  red_model,
+  newdata = new_cheddar,
+  interval = "prediction",
+  level = correction
+)
+
+prediction_interval
+```
+### Model Diagnostics
+
+Time to look at any highly influential data points or high leverage points.
+
+```{r}
+n = 30
+p = 4 # according to the full model
+g = lm(taste~., data = cheddar)
+lev = influence(g)$hat
+lev[lev > 2*p/n] # identifying high leverage points based on 2p/n Rule of Thumb
+print(max(lev))
+print(2*p/n)
+```
+No high leverage points, highest value is .2660 and cutoff is .2667; if the cutoff is loose it could be considered high leverage, but strictly speaking it's not above the threshold.
+
+```{r}
+cook = cooks.distance(g)
+halfnorm(cook, labs = row.names(cheddar), ylab = "Cook's distances")
+```
+The largest Cook's distance is observation 15. However, the value itself is not very large (nowhere near 1).
+
+```{r}
+# looking at 15th observation
+cheddar[15,]
+```
+### Confidence Intervals for each slope
+
+In this section, I will build a 95% CI for each slope based on the original, full model.
+
+```{r}
+confint(model, level = .95)
+```
+The results match our previous determination that the slope for 'Acetic' is not statistically significantly different from 0. 'H2S' and 'Lactic' have positive slopes.
+
+### Generalized Least Squares
+
+Making a generalized least squares model and plotting relevant information. Operating under the assumption that the errors are either correlated or heteroskedastic in order to have generalized least squares be relevant.
+
+```{r}
+library(nlme)
+gls_model = gls(taste~., correlation = corAR1(), data = cheddar)
+summary(gls_model)
+```
+Making confidence intervals for our model...
+```{r}
+intervals(gls_model)
+```
+According to the 95% CI, 'Acetic' and 'Lactic' are not statistically significantly different from 0, 'H2S' is positive. The correlation CI is quite large so it is not very helpful.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
