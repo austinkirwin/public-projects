@@ -6,3 +6,135 @@ output:
     df_print: paged
 fontsize: 12pt
 ---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Name: Austin Kirwin
+
+
+### Libraries
+```{r}
+library(readr)
+library(stats)
+library(tidyverse)
+```
+
+### Reading in data set
+```{r}
+wine = read_delim("winequality-red.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
+head(wine, 5)
+```
+
+Looking at correlation matrix
+
+```{r}
+wine %>%
+  select(-quality) %>%
+  cor(use="pairwise.complete.obs") %>%
+  round(2)
+```
+### Normalizing the data
+
+```{r}
+predictors = wine %>%
+  select(-quality)
+
+predictors[, c("fixed acidity", "volatile acidity", "citric acid", "residual sugar", "chlorides", "free sulfur dioxide", "total sulfur dioxide", "density", "pH", "sulphates", "alcohol")] = scale(predictors[, c("fixed acidity", "volatile acidity", "citric acid", "residual sugar", "chlorides", "free sulfur dioxide", "total sulfur dioxide", "density", "pH", "sulphates", "alcohol")])
+
+head(predictors, 5)
+```
+
+### Fitting and Evaluating
+
+```{r}
+kmodel = kmeans(predictors, centers = 3, nstart = 20)
+kmodel
+```
+The SS proportion is not very great, now its time to test different possible cluster amounts:
+
+```{r}
+max_clusters = 10
+
+# Within sum of squares
+wss = numeric(max_clusters)
+
+# Reproducibility
+set.seed(321)
+
+# Look over 1 -> n clusters
+for (i in 1:max_clusters) {
+  km = kmeans(predictors, centers = i, nstart = 20)
+  
+  wss[i] = km$tot.withinss
+}
+
+# Produce a scree plot to visualize wss vs clusters
+wss_df = tibble(clusters = 1:max_clusters, wss = wss)
+
+scree_plot = ggplot(wss_df, aes(x = clusters, y = wss, group = 1)) + 
+  geom_point(size = 4) +
+  geom_line() +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+  xlab("Number of clusters")
+scree_plot
+```
+
+It's hard to tell where the drop off happens so I'll add lines in the graph.
+
+```{r}
+scree_plot +
+  geom_hline(
+    yintercept = wss,
+    linetype = "dashed",
+    col = c(rep("#000000", 6), "#FF0000", rep("#000000", 3))
+  )
+```
+
+There is a significant reduction in model improvement after the 7th cluster, so we'll build a model based on this result.
+
+```{r}
+k = 7
+set.seed(321)
+
+km = kmeans(predictors, centers = k, nstart = 20)
+km
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
