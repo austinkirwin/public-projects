@@ -1,0 +1,36 @@
+---
+title: "Analysis of Flights"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+fontsize: 12pt
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+I will be analyzing the flights data set and answering various prompts
+
+
+### Libraries
+
+```{r}
+library(dplyr)
+library(readr)
+library(memoise)
+```
+
+
+### Data set
+
+```{r}
+flights = as_tibble(data.table::fread("https://github.com/Rdatatable/data.table/blob/master/vignettes/flights14.csv?raw=true"))
+flights
+```
+
+### Analysis
+
+
+
+
+
