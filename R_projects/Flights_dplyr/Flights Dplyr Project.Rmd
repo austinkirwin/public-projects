@@ -29,8 +29,56 @@ flights
 ```
 
 ### Analysis
+This section will mainly involve demonstrating an understanding of different aspects of dplyr rather than focusing on a prompt.
 
+Finding the average dep_delay by carrier
+```{r}
+flights %>%
+  group_by(carrier) %>%
+  summarise(avg_dep_delay = mean(dep_delay))
+```
 
+Finding total delay of each flight
+```{r}
+flights %>%
+  mutate(tot_delay = arr_delay + dep_delay) %>%
+  select(carrier, origin, tot_delay)
+```
+Top 5 origin-dest pairs with most flights?
+
+```{r}
+flights %>%
+  group_by(origin, dest) %>%
+  summarise(N = n()) %>%
+  arrange(desc(N)) %>%
+  head(5)
+```
+Average departure and arrival delay by month
+
+```{r}
+flights %>%
+  group_by(month) %>%
+  summarise(avg_dep_delay = mean(dep_delay),
+            avg_arr_delay = mean(arr_delay))
+```
+
+Which days of the month have the most on-time arrivals?
+
+```{r}
+flights %>%
+  group_by(day) %>%
+  filter(arr_delay <= 0) %>%
+  summarise(count = n()) %>%
+  arrange(desc(count))
+```
+
+Delay percentiles by carrier
+
+```{r}
+flights %>%
+  group_by(carrier) %>%
+  summarise(arr_delay_quan = quantile(arr_delay)) # fix later
+```
 
 
 
