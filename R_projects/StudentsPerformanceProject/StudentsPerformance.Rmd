@@ -1,5 +1,5 @@
 ---
-title: "Analysis of Alcohol"
+title: "Measuring Student Performance"
 output:
   pdf_document: default
   html_document:
@@ -7,9 +7,9 @@ output:
 fontsize: 12pt
 ---
 
+### Libraries
 
-
-```{r, include=FALSE}
+```{r}
 library(tidyverse)
 library(shiny)
 library(ggplot2)
