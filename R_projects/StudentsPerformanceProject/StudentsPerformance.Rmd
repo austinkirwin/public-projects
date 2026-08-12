@@ -9,9 +9,87 @@ fontsize: 12pt
 
 ### Libraries
 
-```{r}
+```{r, echo = FALSE}
 library(tidyverse)
 library(shiny)
 library(ggplot2)
-
+library(leaps)
 ```
+
+
+### Dataset
+
+```{r, echo = FALSE}
+performance = read_csv("https://raw.githubusercontent.com/austinkirwin/public-projects/refs/heads/main/R_projects/StudentsPerformanceProject/StudentsPerformance.csv")
+head(performance)
+```
+
+
+### Analysis
+
+## Intro
+How much does a student's upbringing affect their test scores? Does their race matter? Gender? Is it possible that these factors might be intertwined in affecting a student's result? This analysis hopes to answer some of those questions. The Student Performance data set was found on [Kaggle](https://www.kaggle.com/datasets/spscientist/students-performance-in-exams) and does not include any deeper explanations on the included variables (what race "groups" are, what the test preparation consisted of, etc). 
+
+## Data Exploration
+
+One-Hot Encoding categorical variables:
+```{r, echo=FALSE}
+encodedgender = model.matrix(~gender-1, data = performance)
+
+# Renaming columns so they are easier to work with
+lookup = c(race = "race/ethnicity", parentEdu = "parental level of education", testPrep = "test preparation course", mathScore = "math score", readingScore = "reading score", writingScore = "writing score")
+performance = rename(performance, all_of(lookup))
+
+encodedrace = model.matrix(~race-1, data = performance)
+encodedparent = model.matrix(~parentEdu-1, data = performance)
+encodedlunch = model.matrix(~lunch-1, data = performance)
+encodedtest = model.matrix(~testPrep-1, data = performance)
+
+performance_df = as.data.frame(cbind(encodedgender, encodedrace, encodedparent, encodedlunch, encodedtest, performance$mathScore, performance$readingScore, performance$writingScore))
+
+# Renaming columns in new data frame
+newNames = c(raceA = "racegroup A", raceB = "racegroup B", raceC = "racegroup C", raceD = "racegroup D", raceE = "racegroup E", parentEduAssoc = "parentEduassociate's degree", parentEduBach = "parentEdubachelor's degree", parentEduHS = "parentEduhigh school", parentEduMaster = "parentEdumaster's degree", parentEduSomeCollege = "parentEdusome college", parentEduSomeHS = "parentEdusome high school", lunchFree = "lunchfree/reduced", mathScore = "V18", readingScore = "V19", writingScore = "V20")
+performance_df = rename(performance_df, all_of(newNames))
+head(performance_df)
+```
+Checking for NA values:
+```{r, echo=FALSE}
+dim(performance_df) - dim(na.omit(performance_df))
+```
+The size of the dataframe with NA values is [0,0] so there are no NA values.
+
+```{r}
+test = c()
+a = 1
+for (i in 1:nrow(abs(cor(performance_df)))) {
+  for (j in 1:ncol(abs(cor(performance_df)))) {
+    if (abs(cor(performance_df))[i, j] <= .6) {
+      test[a] == abs(cor(performance_df))[i, j]
+      a = a+1
+    }
+  }
+}  
+test
+```
+## Full Model
+
+Full model, reference group not shown in output
+```{r, echo = FALSE}
+g = lm(mathScore ~ ., data = performance)
+g
+```
+Best subsets of model:
+```{r}
+a= regsubsets(mathScore~., data = performance)
+rs = summary(a)
+rs$which
+```
+```{r}
+step(g, direction = "both")
+```
+
+
+
+
+
+
